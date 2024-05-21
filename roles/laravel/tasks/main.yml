@@ -1,0 +1,56 @@
+---
+# tasks file for laravel
+- name: download remi rpm packages
+  get_url:
+    url: "https://rpms.remirepo.net/enterprise/remi-release-{{ remi_version }}.rpm"
+    dest: "/tmp/remi-release-{{ remi_version }}.rpm"
+    mode: 0755
+
+- name: download epel rpm packages
+  get_url:
+    url: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ epel_version }}.noarch.rpm"
+    dest: "/tmp/epel-release-latest-{{ epel_version }}.rpm"
+    mode: 0755
+
+- name: add remi and epel
+  yum:
+   name: 
+    - "/tmp/epel-release-latest-{{ epel_version }}.rpm"
+    - "/tmp/remi-release-{{ remi_version }}.rpm"
+   state: present
+
+- name: Enable PHP 8.2 module stream
+  shell: yum-config-manager --enable remi-php82
+
+#sudo apt install php8.x php8.x-fpm php8.x-mysql php8.x-mbstring php8.x-xml php8.x-json
+# sudo yum install php8.2 php8.2-cli php8.2-fpm php8.2-mysqlnd  php8.2-xml php8.2-opcache php8.2-mbstring php8.2-zip
+- name: install php
+  yum:
+   name: 
+   - php8.2
+   - php8.2-common
+   - php8.2-fpm
+   - php8.2-mysql
+   - php8.2-mbstring
+   - php8.2-xml
+   - php8.2-json
+   - php8.2-zip
+   state: present
+
+- name: Read composer checksum
+  shell: curl https://getcomposer.org/download/{{ composer_version }}/composer.phar.sha256
+  register: composer_checksum
+
+- name: "Download PHAR file"
+  ansible.builtin.get_url:
+    url: https://getcomposer.org/download/{{ composer_version }}/composer.phar
+    dest: /usr/local/bin/composer
+    force: yes
+    checksum: "sha256:{{ composer_checksum.stdout }}"
+
+- name: "Read composer version"
+  shell: composer -V
+  register: composer_version
+
+- debug:
+    var: composer_version.stdout

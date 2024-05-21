@@ -1,0 +1,7 @@
+- name: Provision server instances
+  become: yes
+  hosts: instances
+  vars_files:
+    - vars.yml
+  roles:
+   - laravel

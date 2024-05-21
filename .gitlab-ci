@@ -1,0 +1,9 @@
+eval $(ssh-agent -s) && echo "$PROD_SSH_KEY" | ssh-add -
+  mkdir -p ~/.ssh
+  echo -e "Host *\n\tStrictHostKeyChecking no\n\tControlMaster auto\n\tControlPath /tmp/ansible-%r@%h:%p\n\tControlPersist 15m\n\tPreferredAuthentications publickey
+  \n\n" > ~/.ssh/config
+  chmod go-wrx ~/.ssh
+  chmod go-w ~/.ssh/config
+
+ssh -ttttttttttt $DEV_DEPLOY_USER@$DEV_BATCH_HOST "sudo chown -R $DEV_DEPLOY_USER:$DEV_DEPLOY_USER $DEV_DEPLOY_DIR/"
+rsync -c -alv --ignore-times --delete --exclude='.git' --exclude=storage/logs/ ./ $DEV_DEPLOY_USER@$DEV_BATCH_HOST:$DEV_DEPLOY_DIR/
